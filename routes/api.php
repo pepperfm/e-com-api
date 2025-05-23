@@ -14,7 +14,7 @@ Route::group([
 ], static function (): void {
     Route::post('add-to-basket/{product}', [UserController::class, 'addToBasket'])->name('add-to-basket');
     Route::delete('remove-from-basket/{product}', [UserController::class, 'removeFromBasket'])->name('remove-from-basket');
-    Route::post('create-order', [UserController::class, 'createOrder'])->name('create-order');
 
     Route::get('orders/{hash}/make-payment', [OrderController::class, 'makePayment'])->name('orders.make-payment');
+    Route::post('orders/store', [OrderController::class, 'store'])->name('orders.store');
 });

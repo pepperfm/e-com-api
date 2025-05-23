@@ -82,7 +82,7 @@ test('create order', function () {
 
     expect($user->orders)->toBeEmpty();
 
-    $response = postJson(route('create-order'), [
+    $response = postJson(route('orders.store'), [
         'payment_method_id' => PaymentMethod::query()->inRandomOrder()->value('id'),
     ]);
     $response->assertOk();
@@ -109,7 +109,7 @@ test('cant create order', function (callable $callable) {
             ->create();
     }
 
-    $response = postJson(route('create-order'), [
+    $response = postJson(route('orders.store'), [
         'payment_method_id' => $data['payment_method_id'],
     ]);
     $response->assertStatus($data['status']);

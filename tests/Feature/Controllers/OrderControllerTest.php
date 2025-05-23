@@ -1,9 +1,12 @@
 <?php
 
+declare(strict_types=1);
+
 use App\Models\PaymentMethod;
-use App\Models\Product;
+use App\Models\Basket;
 use App\Models\User;
 use Database\Seeders\DatabaseSeeder;
+
 use function Pest\Laravel\{actingAs, seed, getJson, postJson};
 
 beforeEach(function () {
@@ -15,12 +18,11 @@ beforeEach(function () {
 });
 
 test('make payment', function () {
-    $products = Product::factory(25)->create();
-    for ($i = 0; $i < 3; $i++) {
-        postJson(route('add-to-basket', ['product' => $products->random()->getKey()]))
-            ->assertOk();
-    }
-    $response = postJson(route('create-order'), [
+    Basket::factory()
+        ->withUser($this->user)
+        ->withProducts()
+        ->create();
+    $response = postJson(route('orders.store'), [
         'payment_method_id' => PaymentMethod::query()->inRandomOrder()->value('id'),
     ]);
     $response->assertOk();

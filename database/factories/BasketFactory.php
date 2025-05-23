@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Database\Factories;
 
 use App\Models\Product;
@@ -18,7 +20,7 @@ class BasketFactory extends Factory
 
     public function withUser(?User $user = null): static
     {
-        return $this->state(fn () => [
+        return $this->state(fn() => [
             'user_id' => $user?->getKey() ?? User::factory(),
         ]);
     }
