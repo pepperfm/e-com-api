@@ -2,9 +2,13 @@
 
 declare(strict_types=1);
 
-use Illuminate\Foundation\Inspiring;
-use Illuminate\Support\Facades\Artisan;
+use App\Enum\OrderStatusEnum;
+use App\Models\Order;
 
-Artisan::command('inspire', function () {
-    $this->comment(Inspiring::quote());
-})->purpose('Display an inspiring quote');
+Schedule::call(static function (): void {
+    Order::query()
+        ->select(['id', 'status', 'created_at'])
+        ->where('status', OrderStatusEnum::ReadyToPay)
+        ->where('created_at', '<=', now()->subMinutes(2))
+        ->update(['status' => OrderStatusEnum::Cancelled]);
+})->everyMinute();
