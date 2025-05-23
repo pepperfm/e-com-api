@@ -1,9 +1,13 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Database\Seeders;
 
-use App\Models\User;
 // use Illuminate\Database\Console\Seeds\WithoutModelEvents;
+use App\Models\PaymentMethod;
+use App\Models\Product;
+use App\Models\User;
 use Illuminate\Database\Seeder;
 
 class DatabaseSeeder extends Seeder
@@ -18,6 +22,14 @@ class DatabaseSeeder extends Seeder
         User::factory()->create([
             'name' => 'Test User',
             'email' => 'test@example.com',
+        ]);
+
+        Product::factory(100)->create();
+
+        PaymentMethod::insert([
+            ['name' => 'Bank Card'],
+            ['name' => 'SBP'],
+            ['name' => 'Stripe'],
         ]);
     }
 }

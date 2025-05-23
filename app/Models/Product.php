@@ -14,4 +14,14 @@ class Product extends Model
     protected $casts = [
         'price' => 'decimal:2',
     ];
+
+    public function baskets(): \Illuminate\Database\Eloquent\Relations\MorphToMany
+    {
+        return $this->morphedByMany(Basket::class, 'productable');
+    }
+
+    public function orders(): \Illuminate\Database\Eloquent\Relations\MorphToMany
+    {
+        return $this->morphedByMany(Order::class, 'productable');
+    }
 }

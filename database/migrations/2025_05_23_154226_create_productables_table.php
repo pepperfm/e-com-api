@@ -9,16 +9,14 @@ use Illuminate\Support\Facades\Schema;
 return new class extends Migration {
     public function up(): void
     {
-        Schema::create('products', function (Blueprint $table) {
-            $table->id();
-            $table->string('name')->nullable();
-            $table->decimal('price', 10)->nullable();
-            $table->timestamps();
+        Schema::create('productables', function (Blueprint $table) {
+            $table->morphs('productable');
+            $table->foreignId('product_id')->nullable()->constrained()->cascadeOnDelete();
         });
     }
 
     public function down(): void
     {
-        Schema::dropIfExists('products');
+        Schema::dropIfExists('productables');
     }
 };

@@ -46,4 +46,19 @@ class User extends Authenticatable
             'password' => 'hashed',
         ];
     }
+
+    public function getBasket(): Basket
+    {
+        return $this->basket()->firstOrCreate();
+    }
+
+    public function basket(): \Illuminate\Database\Eloquent\Relations\HasOne|User
+    {
+        return $this->hasOne(Basket::class);
+    }
+
+    public function orders(): User|\Illuminate\Database\Eloquent\Relations\HasMany
+    {
+        return $this->hasMany(Order::class);
+    }
 }

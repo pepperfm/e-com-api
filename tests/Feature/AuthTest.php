@@ -1,15 +1,18 @@
 <?php
 
+declare(strict_types=1);
+
 use App\Models\User;
+
+use function Pest\Laravel\postJson;
 
 test('process login', function () {
     $user = User::factory()->create();
 
-    $response = $this->postJson(route('login.store'), [
+    $response = postJson(route('login.store'), [
         'email' => $user->email,
         'password' => 'password',
     ]);
     $response->assertOk();
-
-    $this->assertAuthenticatedAs($user);
+    $response->assertJsonStructure(['token', 'user' => []]);
 });

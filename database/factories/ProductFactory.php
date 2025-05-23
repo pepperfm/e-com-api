@@ -1,9 +1,11 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Database\Factories;
 
-use Illuminate\Database\Eloquent\Factories\Factory;
 use App\Models\Product;
+use Illuminate\Database\Eloquent\Factories\Factory;
 
 class ProductFactory extends Factory
 {
@@ -13,6 +15,7 @@ class ProductFactory extends Factory
     {
         return [
             'name' => $this->faker->name(),
+            'price' => $this->faker->randomFloat(2, 10, 1000),
         ];
     }
 }

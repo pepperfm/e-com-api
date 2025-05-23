@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
@@ -12,7 +14,6 @@ return new class extends Migration {
             $table->foreignId('user_id')->nullable()->constrained()->nullOnDelete();
             $table->foreignId('payment_method_id')->nullable()->constrained()->nullOnDelete();
             $table->unsignedTinyInteger('status')->nullable();
-            $table->decimal('total_sum', 10)->nullable();
             $table->timestamps();
         });
     }
