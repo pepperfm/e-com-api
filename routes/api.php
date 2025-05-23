@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 use App\Http\Controllers\LoginController;
 use App\Http\Controllers\OrderController;
+use App\Http\Controllers\ProductController;
 use App\Http\Controllers\UserController;
 use Illuminate\Support\Facades\Route;
 
@@ -17,4 +18,6 @@ Route::group([
 
     Route::get('orders/{hash}/make-payment', [OrderController::class, 'makePayment'])->name('orders.make-payment');
     Route::post('orders/store', [OrderController::class, 'store'])->name('orders.store');
+
+    Route::get('products', [ProductController::class, 'index'])->name('products.index');
 });
