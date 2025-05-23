@@ -3,7 +3,7 @@
 declare(strict_types=1);
 
 use App\Enum\OrderStatusEnum;
-use App\Models\Order;
+use App\Jobs\CancelOldOrdersJob;
 use App\Models\PaymentMethod;
 use App\Models\Basket;
 use App\Models\User;
@@ -54,10 +54,7 @@ test('unpaid orders are cancelled after 2 minutes', function (int $minutes, Orde
 
     travelTo(now()->addMinutes($minutes));
 
-    Order::query()
-        ->where('status', OrderStatusEnum::ReadyToPay)
-        ->where('created_at', '<=', now()->subMinutes(2))
-        ->update(['status' => OrderStatusEnum::Cancelled]);
+    CancelOldOrdersJob::dispatch();
 
     $order = $this->user->orders()->first();
 
