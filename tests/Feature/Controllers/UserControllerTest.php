@@ -7,7 +7,7 @@ use App\Models\Product;
 use App\Models\User;
 use Database\Seeders\DatabaseSeeder;
 
-use function Pest\Laravel\{actingAs, seed, postJson};
+use function Pest\Laravel\{actingAs, seed, postJson, deleteJson};
 
 beforeEach(function () {
     seed(DatabaseSeeder::class);
@@ -21,13 +21,10 @@ test('add product to basket', function (int $count) {
     expect($user->basket)->toBeNull();
 
     for ($i = 0; $i < $count; $i++) {
-        $response = postJson(route('add-to-basket'), [
-            'product_id' => $products->random()->getKey(),
-        ]);
+        $response = postJson(route('add-to-basket', ['product' => $products->random()->getKey()]));
         $response->assertOk();
     }
-
-    $user->refresh();
+    $user->refresh()->basket->refresh();
 
     expect($user->basket)->not()->toBeNull()
         ->and($user->basket->count())->toEqual(1)
@@ -40,18 +37,37 @@ test('add product to basket', function (int $count) {
 
 test('cant add to basket', function () {
     Product::factory(5)->create();
-    $response = postJson(route('add-to-basket'), [
-        'product_id' => Product::query()->latest('id')->value('id') + 1,
-    ]);
+    $response = postJson(route('add-to-basket', [
+        'product' => Product::query()->latest('id')->value('id') + 1,
+    ]));
     $response->assertUnprocessable();
+});
+
+test('remove product from basket', function () {
+    $products = Product::factory(25)->create();
+    $user = user()->load('basket.products');
+
+    expect($user->basket)->toBeNull();
+
+    $productId = $products->random()->getKey();
+
+    postJson(route('add-to-basket', ['product' => $productId]))
+        ->assertOk();
+
+    $response = deleteJson(route('remove-from-basket', ['product' => $productId]));
+    $response->assertOk();
+
+    $user->refresh();
+
+    expect($user->basket)->not()->toBeNull()
+        ->and($user->basket->count())->toEqual(1)
+        ->and($user->basket->products)->toBeEmpty();
 });
 
 test('create order', function () {
     $products = Product::factory(25)->create();
     for ($i = 0; $i < 3; $i++) {
-        $response = postJson(route('add-to-basket'), [
-            'product_id' => $products->random()->getKey(),
-        ]);
+        $response = postJson(route('add-to-basket', ['product' => $products->random()->getKey()]));
         $response->assertOk();
     }
 
@@ -80,9 +96,7 @@ test('cant create order', function (callable $callable) {
     $data = $callable();
     $products = Product::factory(25)->create();
     if ($data['fill_basket']) {
-        $response = postJson(route('add-to-basket'), [
-            'product_id' => $products->random()->getKey(),
-        ]);
+        $response = postJson(route('add-to-basket', ['product' => $products->random()->getKey()]));
         $response->assertOk();
     }
 

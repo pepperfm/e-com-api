@@ -4,17 +4,25 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers;
 
-use App\Data\AddToBasketRequest;
+use App\Data\ToggleBasketRequest;
 use App\Data\CreateOrderRequest;
 
 class UserController extends Controller
 {
-    public function addToBasket(AddToBasketRequest $request): \Illuminate\Http\JsonResponse
+    public function addToBasket(ToggleBasketRequest $request): \Illuminate\Http\JsonResponse
     {
         $basket = user()->getBasket();
         $basket->products()->syncWithoutDetaching($request->productId);
 
         return response()->json(['message' => 'Product added to basket']);
+    }
+
+    public function removeFromBasket(ToggleBasketRequest $request): \Illuminate\Http\JsonResponse
+    {
+        $basket = user()->getBasket();
+        $basket->products()->detach($request->productId);
+
+        return response()->json(['message' => 'Product removed from basket']);
     }
 
     public function createOrder(CreateOrderRequest $request): \Illuminate\Http\JsonResponse
@@ -50,6 +58,6 @@ class UserController extends Controller
             return response()->json(['message' => 'Omg!'], status: 500);
         }
 
-        return response()->json();
+        return response()->json(['message' => 'Order created']);
     }
 }

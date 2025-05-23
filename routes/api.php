@@ -11,6 +11,7 @@ Route::post('login', LoginController::class)->name('login.store');
 Route::group([
     'middleware' => 'auth:sanctum',
 ], static function (): void {
-    Route::post('add-to-basket', [UserController::class, 'addToBasket'])->name('add-to-basket');
+    Route::post('add-to-basket/{product}', [UserController::class, 'addToBasket'])->name('add-to-basket');
+    Route::delete('remove-from-basket/{product}', [UserController::class, 'removeFromBasket'])->name('remove-from-basket');
     Route::post('create-order', [UserController::class, 'createOrder'])->name('create-order');
 });
