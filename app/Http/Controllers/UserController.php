@@ -28,36 +28,40 @@ class UserController extends Controller
     public function createOrder(CreateOrderRequest $request): \Illuminate\Http\JsonResponse
     {
         try {
-            db()->beginTransaction();
+            return db()->transaction(function () use ($request) {
+                $basket = user()->getBasket();
+                if ($basket->products->isEmpty()) {
+                    return response()->json(['message' => 'Empty basket'], 404);
+                }
 
-            $basket = user()->getBasket();
-            if ($basket->products->isEmpty()) {
-                return response()->json(['message' => 'Empty basket'], status: 404);
-            }
-            $order = user()->orders()->create(['payment_method_id' => $request->paymentMethodId]);
-            $order->products()->attach($basket->products);
+                $order = user()->orders()->create([
+                    'payment_method_id' => $request->paymentMethodId,
+                ]);
 
-            // шаблон для pivot-данных
-            // $attachData = [];
-            // foreach ($basket->products as $product) {
-            //     $attachData[$product->id] = [
-            //         'quantity' => $product->pivot->quantity ?? 1,
-            //         'price' => $product->pivot->price ?? $product->price,
-            //     ];
-            // }
-            // $order->products()->attach($attachData);
+                // шаблон для pivot-данных
+                // $attachData = [];
+                // foreach ($basket->products as $product) {
+                //     $attachData[$product->id] = [
+                //         'quantity' => $product->pivot->quantity ?? 1,
+                //         'price' => $product->pivot->price ?? $product->price,
+                //     ];
+                // }
+                // $order->products()->attach($attachData);
 
-            $basket->products()->detach();
-            $basket->delete();
+                $order->products()->attach($basket->products->pluck('id')->all());
 
-            db()->commit();
+                $basket->products()->detach();
+                $basket->delete();
+
+                return response()->json([
+                    'payment_url' => $order->generatePaymentUrl(),
+                    'message' => 'Order created',
+                ]);
+            });
         } catch (\Throwable $e) {
-            db()->rollback();
-            logger($e->getMessage(), $e->getTrace());
+            logger()->error($e->getMessage(), $e->getTrace());
 
-            return response()->json(['message' => 'Omg!'], status: 500);
+            return response()->json(['message' => 'Omg!'], 500);
         }
-
-        return response()->json(['message' => 'Order created']);
     }
 }

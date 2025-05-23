@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 use App\Http\Controllers\LoginController;
+use App\Http\Controllers\OrderController;
 use App\Http\Controllers\UserController;
 use Illuminate\Support\Facades\Route;
 
@@ -14,4 +15,6 @@ Route::group([
     Route::post('add-to-basket/{product}', [UserController::class, 'addToBasket'])->name('add-to-basket');
     Route::delete('remove-from-basket/{product}', [UserController::class, 'removeFromBasket'])->name('remove-from-basket');
     Route::post('create-order', [UserController::class, 'createOrder'])->name('create-order');
+
+    Route::get('orders/{hash}/make-payment', [OrderController::class, 'makePayment'])->name('orders.make-payment');
 });

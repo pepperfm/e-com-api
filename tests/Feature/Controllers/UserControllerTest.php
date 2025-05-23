@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 
+use App\Models\Basket;
 use App\Models\PaymentMethod;
 use App\Models\Product;
 use App\Models\User;
@@ -11,25 +12,27 @@ use function Pest\Laravel\{actingAs, seed, postJson, deleteJson};
 
 beforeEach(function () {
     seed(DatabaseSeeder::class);
-    actingAs(User::first(), 'sanctum');
+
+    $this->user = User::first();
+
+    actingAs($this->user, 'sanctum');
 });
 
 test('add product to basket', function (int $count) {
-    $products = Product::factory(25)->create();
+    Product::factory(25)->create();
     $user = user()->load('basket.products');
 
     expect($user->basket)->toBeNull();
 
-    for ($i = 0; $i < $count; $i++) {
-        $response = postJson(route('add-to-basket', ['product' => $products->random()->getKey()]));
-        $response->assertOk();
-    }
-    $user->refresh()->basket->refresh();
+    $basket = Basket::factory()
+        ->withUser($user)
+        ->withProducts($count)
+        ->create();
 
-    expect($user->basket)->not()->toBeNull()
-        ->and($user->basket->count())->toEqual(1)
-        ->and($user->basket->products)->not()->toBeEmpty()
-        ->and($user->basket->products->count())->toEqual($count);
+    expect($basket)->not()->toBeNull()
+        ->and($basket->count())->toEqual(1)
+        ->and($basket->products)->not()->toBeEmpty()
+        ->and($basket->products->count())->toEqual($count);
 })->with([
     'one product' => 1,
     'many products' => 5,
@@ -49,27 +52,31 @@ test('remove product from basket', function () {
 
     expect($user->basket)->toBeNull();
 
-    $productId = $products->random()->getKey();
+    $product = $products->random();
 
-    postJson(route('add-to-basket', ['product' => $productId]))
-        ->assertOk();
+    $basket = Basket::factory()
+        ->withUser($user)
+        ->withProducts(1, $product)
+        ->create();
 
-    $response = deleteJson(route('remove-from-basket', ['product' => $productId]));
+    $user->refresh();
+
+    $response = deleteJson(route('remove-from-basket', ['product' => $product->getKey()]));
     $response->assertOk();
 
     $user->refresh();
 
-    expect($user->basket)->not()->toBeNull()
-        ->and($user->basket->count())->toEqual(1)
-        ->and($user->basket->products)->toBeEmpty();
+    expect($basket)->not()->toBeNull()
+        ->and($basket->count())->toEqual(1)
+        ->and($basket->products)->toBeEmpty();
 });
 
 test('create order', function () {
-    $products = Product::factory(25)->create();
-    for ($i = 0; $i < 3; $i++) {
-        $response = postJson(route('add-to-basket', ['product' => $products->random()->getKey()]));
-        $response->assertOk();
-    }
+    Product::factory(25)->create();
+    Basket::factory()
+        ->withUser($this->user)
+        ->withProducts()
+        ->create();
 
     $user = user()->load('basket.products');
 
@@ -85,7 +92,7 @@ test('create order', function () {
     expect($user->orders)->not()->toBeEmpty();
 
     /** @var \App\Models\Order $order */
-    $order = $user->orders->first();
+    $order = $user->orders->first()->refresh();
 
     expect($order->products)->not()->toBeEmpty()
         ->and($order->status)->toEqual(\App\Enum\OrderStatusEnum::ReadyToPay)
@@ -96,8 +103,10 @@ test('cant create order', function (callable $callable) {
     $data = $callable();
     $products = Product::factory(25)->create();
     if ($data['fill_basket']) {
-        $response = postJson(route('add-to-basket', ['product' => $products->random()->getKey()]));
-        $response->assertOk();
+        Basket::factory()
+            ->withUser($this->user)
+            ->withProducts(product: $products->random())
+            ->create();
     }
 
     $response = postJson(route('create-order'), [

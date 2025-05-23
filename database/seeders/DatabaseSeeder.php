@@ -27,9 +27,9 @@ class DatabaseSeeder extends Seeder
         Product::factory(100)->create();
 
         PaymentMethod::insert([
-            ['name' => 'Bank Card'],
-            ['name' => 'SBP'],
-            ['name' => 'Stripe'],
+            ['name' => 'Bank Card', 'payment_path' => 'https://card.ru/payout'],
+            ['name' => 'SBP', 'payment_path' => 'https://sbp.ru/payment'],
+            ['name' => 'Stripe', 'payment_path' => 'https://stripe.com/checkout'],
         ]);
     }
 }

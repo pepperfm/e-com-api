@@ -6,6 +6,7 @@ namespace App\Models;
 
 use App\Enum\OrderStatusEnum;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Facades\Crypt;
 
 class Order extends Model
 {
@@ -17,6 +18,11 @@ class Order extends Model
     protected $attributes = [
         'status' => OrderStatusEnum::ReadyToPay,
     ];
+
+    public function generatePaymentUrl(): string
+    {
+        return Crypt::encryptString($this->getKey());
+    }
 
     public function user(): \Illuminate\Database\Eloquent\Relations\BelongsTo
     {
