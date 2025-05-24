@@ -11,9 +11,6 @@ class UserController extends Controller
     public function addToBasket(ToggleBasketRequest $request): \Illuminate\Http\JsonResponse
     {
         $basket = user()->getBasket();
-        ray(
-            $basket->getKey()
-        );
         $basket->products()->syncWithoutDetaching($request->productId);
 
         return response()->json(['message' => 'Product added to basket']);

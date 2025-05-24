@@ -19,23 +19,19 @@ beforeEach(function () {
 
 test('add to basket', function (int $count) {
     $products = Product::factory(25)->create();
-    $user = user()->load('basket.products');
-
-    expect($user->basket)->toBeNull();
-    for ($i = 0; $i < $count; $i++) {
-        $response = postJson(route('add-to-basket', ['product' => $products->random()->getKey()]));
-        $response->assertOk();
-        usleep(10000);
+    expect($this->user->basket)->toBeNull();
+    foreach ($products->random($count) as $product) {
+        postJson(route('add-to-basket', ['product' => $product->getKey()]))->assertOk();
     }
 
-    $basket = $user->refresh()->getBasket();
+    $basket = $this->user->refresh()->basket;
 
     expect($basket)->not()->toBeNull()
         ->and($basket->count())->toEqual(1)
         ->and($basket->products)->not()->toBeEmpty()
         ->and($basket->products->count())->toEqual($count);
 })->with([
-    // 'one product' => 1,
+    'one product' => 1,
     'many products' => 5,
 ]);
 
