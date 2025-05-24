@@ -16,3 +16,12 @@ test('process login', function () {
     $response->assertOk();
     $response->assertJsonStructure(['token', 'user' => []]);
 });
+
+test('invalid credentials', function () {
+    $user = User::factory()->create();
+    $response = postJson(route('login.store'), [
+        'email' => $user->email,
+        'password' => '123',
+    ]);
+    $response->assertUnauthorized();
+});

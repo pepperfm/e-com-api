@@ -17,7 +17,7 @@ Route::group([
     Route::delete('remove-from-basket/{product}', [UserController::class, 'removeFromBasket'])->name('remove-from-basket');
 
     Route::get('orders/{hash}/make-payment', [OrderController::class, 'makePayment'])->name('orders.make-payment');
-    Route::post('orders/store', [OrderController::class, 'store'])->name('orders.store');
+    Route::apiResource('orders', OrderController::class)->only(['index', 'show', 'store']);
 
-    Route::get('products', [ProductController::class, 'index'])->name('products.index');
+    Route::apiResource('products', ProductController::class)->only(['index', 'show']);
 });

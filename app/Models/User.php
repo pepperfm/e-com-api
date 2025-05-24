@@ -49,7 +49,7 @@ class User extends Authenticatable
 
     public function getBasket(): Basket
     {
-        return $this->basket ?: $this->basket()->create();
+        return $this->basket()->firstOrCreate();
     }
 
     public function basket(): \Illuminate\Database\Eloquent\Relations\HasOne|User

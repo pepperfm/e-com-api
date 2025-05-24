@@ -31,7 +31,7 @@ test('index', function (?string $direction, array $expectedPrices) {
     $response = getJson(route('products.index', $query));
     $response->assertOk();
 
-    $actualPrices = collect($response->json())
+    $actualPrices = $response->collect('entities')
         ->pluck('price')
         ->map(static fn(string $price) => (float) $price)
         ->all();
@@ -51,3 +51,9 @@ test('index', function (?string $direction, array $expectedPrices) {
         'expectedPrices' => [20.00, 5.25, 10.50],
     ],
 ]);
+
+test('show', function () {
+    $product = Product::factory()->create();
+    $response = getJson(route('products.show', $product));
+    $response->assertOk();
+});

@@ -13,7 +13,7 @@ class ProductController extends Controller
     public function index(Request $request): \Illuminate\Http\JsonResponse
     {
         $request->validate([
-            'direction' => ['sometimes', 'string', 'in:asc,desc'],
+            'direction' => ['sometimes', 'nullable', 'string', 'in:asc,desc'],
         ]);
 
         $products = Product::query()
@@ -24,11 +24,11 @@ class ProductController extends Controller
             )
             ->get();
 
-        return response()->json($products);
+        return response()->json(['entities' => $products]);
     }
 
     public function show(Product $product): \Illuminate\Http\JsonResponse
     {
-        return response()->json($product);
+        return response()->json(['entity' => $product]);
     }
 }

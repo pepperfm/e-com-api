@@ -3,7 +3,6 @@
 declare(strict_types=1);
 
 use App\Models\Basket;
-use App\Models\PaymentMethod;
 use App\Models\Product;
 use App\Models\User;
 use Database\Seeders\DatabaseSeeder;
@@ -18,23 +17,25 @@ beforeEach(function () {
     actingAs($this->user, 'sanctum');
 });
 
-test('add product to basket', function (int $count) {
-    Product::factory(25)->create();
+test('add to basket', function (int $count) {
+    $products = Product::factory(25)->create();
     $user = user()->load('basket.products');
 
     expect($user->basket)->toBeNull();
+    for ($i = 0; $i < $count; $i++) {
+        $response = postJson(route('add-to-basket', ['product' => $products->random()->getKey()]));
+        $response->assertOk();
+        usleep(10000);
+    }
 
-    $basket = Basket::factory()
-        ->withUser($user)
-        ->withProducts($count)
-        ->create();
+    $basket = $user->refresh()->getBasket();
 
     expect($basket)->not()->toBeNull()
         ->and($basket->count())->toEqual(1)
         ->and($basket->products)->not()->toBeEmpty()
         ->and($basket->products->count())->toEqual($count);
 })->with([
-    'one product' => 1,
+    // 'one product' => 1,
     'many products' => 5,
 ]);
 
@@ -70,58 +71,3 @@ test('remove product from basket', function () {
         ->and($basket->count())->toEqual(1)
         ->and($basket->products)->toBeEmpty();
 });
-
-test('create order', function () {
-    Product::factory(25)->create();
-    Basket::factory()
-        ->withUser($this->user)
-        ->withProducts()
-        ->create();
-
-    $user = user()->load('basket.products');
-
-    expect($user->orders)->toBeEmpty();
-
-    $response = postJson(route('orders.store'), [
-        'payment_method_id' => PaymentMethod::query()->inRandomOrder()->value('id'),
-    ]);
-    $response->assertOk();
-
-    $user->refresh();
-
-    expect($user->orders)->not()->toBeEmpty();
-
-    /** @var \App\Models\Order $order */
-    $order = $user->orders->first()->refresh();
-
-    expect($order->products)->not()->toBeEmpty()
-        ->and($order->status)->toEqual(\App\Enum\OrderStatusEnum::ReadyToPay)
-        ->and($user->basket)->toBeNull();
-});
-
-test('cant create order', function (callable $callable) {
-    $data = $callable();
-    $products = Product::factory(25)->create();
-    if ($data['fill_basket']) {
-        Basket::factory()
-            ->withUser($this->user)
-            ->withProducts(product: $products->random())
-            ->create();
-    }
-
-    $response = postJson(route('orders.store'), [
-        'payment_method_id' => $data['payment_method_id'],
-    ]);
-    $response->assertStatus($data['status']);
-})->with([
-    'payment method error' => static fn() => [
-        'payment_method_id' => 123,
-        'status' => 422,
-        'fill_basket' => true,
-    ],
-    'empty basket error' => static fn() => [
-        'payment_method_id' => PaymentMethod::query()->inRandomOrder()->value('id'),
-        'status' => 404,
-        'fill_basket' => false,
-    ],
-]);

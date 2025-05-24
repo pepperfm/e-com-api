@@ -4,12 +4,44 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers;
 
+use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Http\Request;
+use Illuminate\Validation\Rule;
 use App\Data\CreateOrderRequest;
 use App\Enum\OrderStatusEnum;
 use App\Models\Order;
 
 class OrderController extends Controller
 {
+    public function index(Request $request): \Illuminate\Http\JsonResponse
+    {
+        $request->validate([
+            'direction' => ['sometimes', 'nullable', 'string', 'in:asc,desc'],
+            'status' => ['sometimes', 'nullable', Rule::enum(OrderStatusEnum::class)],
+        ]);
+
+        $orders = $request->user()->orders()
+            ->when(
+                $request->query('direction'),
+                static fn(Builder $query, string $direction) => $query->orderBy('created_at', $direction),
+                static fn(Builder $query) => $query->latest('id')
+            )
+            ->when(
+                $request->query('status'),
+                static fn(Builder $query, string $status) => $query->where('status', $status),
+            )
+            ->get();
+
+        return response()->json(['entities' => $orders]);
+    }
+
+    public function show(int $id): \Illuminate\Http\JsonResponse
+    {
+        return response()->json([
+            'entity' => user()->orders()->findOrFail($id),
+        ]);
+    }
+
     public function store(CreateOrderRequest $request): \Illuminate\Http\JsonResponse
     {
         try {

@@ -5,10 +5,9 @@ declare(strict_types=1);
 namespace Database\Seeders;
 
 // use Illuminate\Database\Console\Seeds\WithoutModelEvents;
-use App\Models\PaymentMethod;
+use Illuminate\Database\Seeder;
 use App\Models\Product;
 use App\Models\User;
-use Illuminate\Database\Seeder;
 
 class DatabaseSeeder extends Seeder
 {
@@ -26,10 +25,8 @@ class DatabaseSeeder extends Seeder
 
         Product::factory(100)->create();
 
-        PaymentMethod::insert([
-            ['name' => 'Bank Card', 'payment_path' => 'https://card.ru/payout'],
-            ['name' => 'SBP', 'payment_path' => 'https://sbp.ru/payment'],
-            ['name' => 'Stripe', 'payment_path' => 'https://stripe.com/checkout'],
+        $this->call([
+            PaymentMethodSeeder::class,
         ]);
     }
 }
